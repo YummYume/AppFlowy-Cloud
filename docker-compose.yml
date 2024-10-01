@@ -2,19 +2,14 @@
 
 services:
   nginx:
-    restart: on-failure
+    restart: unless-stopped
     image: nginx
-    ports:
-      - ${NGINX_PORT:-80}:80   # Disable this if you are using TLS
-      - ${NGINX_TLS_PORT:-443}:443
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl/certificate.crt:/etc/nginx/ssl/certificate.crt
-      - ./nginx/ssl/private_key.key:/etc/nginx/ssl/private_key.key
 
   # You do not need this if you have configured to use your own s3 file storage
   minio:
-    restart: on-failure
+    restart: unless-stopped
     image: minio/minio
     environment:
       - MINIO_BROWSER_REDIRECT_URL=http://localhost/minio
@@ -25,7 +20,7 @@ services:
       - minio_data:/data
 
   postgres:
-    restart: on-failure
+    restart: unless-stopped
     image: pgvector/pgvector:pg16
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
@@ -37,11 +32,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   redis:
-    restart: on-failure
+    restart: unless-stopped
     image: redis
 
   gotrue:
-    restart: on-failure
+    restart: unless-stopped
     build:
       context: .
       dockerfile: docker/gotrue.Dockerfile
@@ -49,26 +44,26 @@ services:
     environment:
       # There are a lot of options to configure GoTrue. You can reference the example config:
       # https://github.com/supabase/gotrue/blob/master/example.env
-      - GOTRUE_SITE_URL=appflowy-flutter://                           # redirected to AppFlowy application
-      - URI_ALLOW_LIST=*                                              # adjust restrict if necessary
-      - GOTRUE_JWT_SECRET=${GOTRUE_JWT_SECRET}                        # authentication secret
+      - GOTRUE_SITE_URL=appflowy-flutter:// # redirected to AppFlowy application
+      - URI_ALLOW_LIST=* # adjust restrict if necessary
+      - GOTRUE_JWT_SECRET=${GOTRUE_JWT_SECRET} # authentication secret
       - GOTRUE_JWT_EXP=${GOTRUE_JWT_EXP}
       - GOTRUE_DB_DRIVER=postgres
       - API_EXTERNAL_URL=${API_EXTERNAL_URL}
       - DATABASE_URL=${GOTRUE_DATABASE_URL}
       - PORT=9999
-      - GOTRUE_SMTP_HOST=${GOTRUE_SMTP_HOST}                          # e.g. smtp.gmail.com
-      - GOTRUE_SMTP_PORT=${GOTRUE_SMTP_PORT}                          # e.g. 465
-      - GOTRUE_SMTP_USER=${GOTRUE_SMTP_USER}                          # email sender, e.g. noreply@appflowy.io
-      - GOTRUE_SMTP_PASS=${GOTRUE_SMTP_PASS}                          # email password
+      - GOTRUE_SMTP_HOST=${GOTRUE_SMTP_HOST} # e.g. smtp.gmail.com
+      - GOTRUE_SMTP_PORT=${GOTRUE_SMTP_PORT} # e.g. 465
+      - GOTRUE_SMTP_USER=${GOTRUE_SMTP_USER} # email sender, e.g. noreply@appflowy.io
+      - GOTRUE_SMTP_PASS=${GOTRUE_SMTP_PASS} # email password
       - GOTRUE_MAILER_URLPATHS_CONFIRMATION=/gotrue/verify
       - GOTRUE_MAILER_URLPATHS_INVITE=/gotrue/verify
       - GOTRUE_MAILER_URLPATHS_RECOVERY=/gotrue/verify
       - GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE=/gotrue/verify
-      - GOTRUE_SMTP_ADMIN_EMAIL=${GOTRUE_SMTP_ADMIN_EMAIL}                # email with admin privileges e.g. internal@appflowy.io
-      - GOTRUE_SMTP_MAX_FREQUENCY=${GOTRUE_SMTP_MAX_FREQUENCY:-1ns}       # set to 1ns for running tests
+      - GOTRUE_SMTP_ADMIN_EMAIL=${GOTRUE_SMTP_ADMIN_EMAIL} # email with admin privileges e.g. internal@appflowy.io
+      - GOTRUE_SMTP_MAX_FREQUENCY=${GOTRUE_SMTP_MAX_FREQUENCY:-1ns} # set to 1ns for running tests
       - GOTRUE_RATE_LIMIT_EMAIL_SENT=${GOTRUE_RATE_LIMIT_EMAIL_SENT:-100} # number of email sendable per minute
-      - GOTRUE_MAILER_AUTOCONFIRM=${GOTRUE_MAILER_AUTOCONFIRM:-false}     # change this to true to skip email confirmation
+      - GOTRUE_MAILER_AUTOCONFIRM=${GOTRUE_MAILER_AUTOCONFIRM:-false} # change this to true to skip email confirmation
       # Google OAuth config
       - GOTRUE_EXTERNAL_GOOGLE_ENABLED=${GOTRUE_EXTERNAL_GOOGLE_ENABLED}
       - GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID=${GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID}
@@ -86,7 +81,7 @@ services:
       - GOTRUE_EXTERNAL_DISCORD_REDIRECT_URI=${GOTRUE_EXTERNAL_DISCORD_REDIRECT_URI}
 
   appflowy_cloud:
-    restart: on-failure
+    restart: unless-stopped
     environment:
       - RUST_LOG=${RUST_LOG:-info}
       - APPFLOWY_ENVIRONMENT=production
@@ -120,7 +115,7 @@ services:
     image: appflowyinc/appflowy_cloud:${APPFLOWY_CLOUD_VERSION:-latest}
 
   admin_frontend:
-    restart: on-failure
+    restart: unless-stopped
     build:
       context: .
       dockerfile: ./admin_frontend/Dockerfile
@@ -132,7 +127,7 @@ services:
       - ADMIN_FRONTEND_APPFLOWY_CLOUD_URL=${ADMIN_FRONTEND_APPFLOWY_CLOUD_URL:-http://appflowy_cloud:8000}
 
   ai:
-    restart: on-failure
+    restart: unless-stopped
     image: appflowyinc/appflowy_ai:${APPFLOWY_AI_VERSION:-latest}
     environment:
       - OPENAI_API_KEY=${APPFLOWY_AI_OPENAI_API_KEY}
@@ -140,7 +135,7 @@ services:
       - APPFLOWY_AI_DATABASE_URL=${APPFLOWY_AI_DATABASE_URL}
 
   appflowy_history:
-    restart: on-failure
+    restart: unless-stopped
     image: appflowyinc/appflowy_history:${APPFLOWY_HISTORY_VERSION:-latest}
     build:
       context: .
