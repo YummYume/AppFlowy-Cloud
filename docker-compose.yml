@@ -17,19 +17,20 @@ services:
       - MINIO_ROOT_PASSWORD=${APPFLOWY_S3_SECRET_KEY:-minioadmin}
     command: server /data --console-address ":9001"
     volumes:
-      - minio_data:/data
+      - ./data/minio:/data
 
   postgres:
     restart: unless-stopped
-    image: pgvector/pgvector:pg16
+    build:
+      context: .
+      dockerfile: postgres.Dockerfile
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
     volumes:
-      - ./migrations/before:/docker-entrypoint-initdb.d
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgres/data:/var/lib/postgresql/data
 
   redis:
     restart: unless-stopped
@@ -153,7 +154,7 @@ services:
       - APPFLOWY_HISTORY_DATABASE_URL=${APPFLOWY_HISTORY_DATABASE_URL}
 
   appflowy_worker:
-    restart: on-failure
+    restart: unless-stopped
     image: appflowyinc/appflowy_worker:${APPFLOWY_WORKER_VERSION:-latest}
     build:
       context: .
@@ -173,6 +174,3 @@ services:
       - APPFLOWY_MAILER_SMTP_PORT=${APPFLOWY_MAILER_SMTP_PORT}
       - APPFLOWY_MAILER_SMTP_USERNAME=${APPFLOWY_MAILER_SMTP_USERNAME}
       - APPFLOWY_MAILER_SMTP_PASSWORD=${APPFLOWY_MAILER_SMTP_PASSWORD}
-volumes:
-  postgres_data:
-  minio_data:
