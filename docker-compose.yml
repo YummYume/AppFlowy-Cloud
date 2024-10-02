@@ -152,3 +152,12 @@ services:
       - APPFLOWY_HISTORY_REDIS_URL=redis://redis:6379
       - APPFLOWY_HISTORY_ENVIRONMENT=production
       - APPFLOWY_HISTORY_DATABASE_URL=${APPFLOWY_HISTORY_DATABASE_URL}
+
+  pgadmin:
+    restart: unless-stopped
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json
